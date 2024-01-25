@@ -30,8 +30,6 @@ jobs:
       run: |
         echo "Initializing..."
 
-        #apt-get install -y jq
-
         echo "Listando PRs abertos"
 
         response=$(curl -s 'https://api.github.com/repos/jamildaruix/teste-reporitorio/pulls' \
@@ -39,7 +37,7 @@ jobs:
         --header 'Authorization: Bearer ${GIT_TOKEN}' \
         --header 'X-GitHub-Api-Version: 2022-11-28')
 
-        tamanho=$(echo "$response" | jq '. | length')
+        tamanho=$(echo "$response" | awk -F':' '{print NF-1}')
 
         echo "Total de PRs abertos: $tamanho"
 
