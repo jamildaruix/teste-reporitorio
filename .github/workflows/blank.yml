@@ -33,8 +33,6 @@ jobs:
         sudo apt-get update
         sudo apt-get install jq
 
-        echo jq -Version
-
         echo "Listando PRs abertos"
 
         response=$(curl -s 'https://api.github.com/repos/jamildaruix/teste-reporitorio/pulls' \
@@ -42,6 +40,7 @@ jobs:
         --header 'Authorization: Bearer ${GIT_TOKEN}' \
         --header 'X-GitHub-Api-Version: 2022-11-28')
 
+        echo "Response: $response"
         tamanho=$(echo "$response" | jq '. | length')
 
         echo "Total de PRs abertos: $tamanho"
