@@ -29,8 +29,6 @@ jobs:
     - name: Run a multi-line script
       run: |
         echo "Initializing..."
-        echo ${GITHUB_REPOSITORY_OWNER}
-        echo 'https://api.github.com/repos/'${GITHUB_REPOSITORY_OWNER}'/teste-reporitorio/pulls'
         sudo apt-get update
         sudo apt-get install jq
 
@@ -72,10 +70,12 @@ jobs:
             if [[ "${datecreated_sem_horas}" < "${data_limite}" ]]; then
 
                 self=$(echo "$elemento" | jq -r '._links.self.href')
-                echo "Listando PRs abertos: $self"
-
+                
+                api_review = https://api.github.com/repos/${GITHUB_REPOSITORY_OWNER}/teste-reporitorio/pulls/${number}/reviews
+                echo $api_review
+                
                 # Fazendo a requisição CURL e obtendo o status code
-                status_code=$(curl --request POST 'https://api.github.com/repos/'${GITHUB_REPOSITORY_OWNER}'/teste-reporitorio/pulls/${number}/reviews' \
+                status_code=$(curl --request POST $api_review \
                     --header 'Accept: application/vnd.github+json' \
                     --header 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' \
                     --header 'X-GitHub-Api-Version: 2022-11-28' \
