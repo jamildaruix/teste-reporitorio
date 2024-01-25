@@ -71,7 +71,7 @@ jobs:
 
                 self=$(echo "$elemento" | jq -r '._links.self.href')
                 
-                api_review = https://api.github.com/repos/${GITHUB_REPOSITORY_OWNER}/teste-reporitorio/pulls/${number}/reviews
+                api_review="https://api.github.com/repos/${GITHUB_REPOSITORY_OWNER}/teste-reporitorio/pulls/${number}/reviews"
                 echo $api_review
                 
                 # Fazendo a requisição CURL e obtendo o status code
