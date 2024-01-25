@@ -30,7 +30,7 @@ jobs:
       run: |
         echo "Initializing..."
 
-        apt-get install -y jq
+        #apt-get install -y jq
 
         echo "Listando PRs abertos"
 
