@@ -49,8 +49,12 @@ jobs:
         fi
 
         # Obtendo a data atual
-        data_atual=$(date +%F)
-        data_limite=$(date -v-30d +%F)
+        data_atual=$(date)
+
+        echo "Data atual: $data_atual"
+
+        data_limite=$(date --date='-30 day')
+
         echo "Data limite: $data_limite"
 
         for ((i=0; i<$tamanho; i++)); do
