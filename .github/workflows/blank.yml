@@ -73,17 +73,17 @@ jobs:
                 
                 api_review="https://api.github.com/repos/${GITHUB_REPOSITORY_OWNER}/teste-reporitorio/pulls/${number}/reviews"
                 echo $api_review
-                
-                echo curl --request POST $api_review \
-                    --header 'Accept: application/vnd.github+json' \
-                    --header 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' \
-                    --header 'X-GitHub-Api-Version: 2022-11-28' \
-                    --header 'Content-Type: application/json' \
-                    --data "{\"body\": \"close-pull-request: Closed by automation called date $data_atual\", \"event\": \"COMMENT\" }
+                                
+                curl --request POST "$api_review" \
+                     --header 'Accept: application/vnd.github+json' \
+                     --header "Authorization: Bearer ${GITHUB_TOKEN}" \
+                     --header 'X-GitHub-Api-Version: 2022-11-28' \
+                     --header 'Content-Type: application/json' \
+                     --data "{\"body\": \"close-pull-request: Closed by automation on date ${data_atual}\", \"event\": \"COMMENT\"}"
 
                 
                 # Fazendo a requisição CURL e obtendo o status code
-                status_code=$(curl --request POST $api_review \
+                status_code=$(curl --request POST "$api_review" \
                     --header 'Accept: application/vnd.github+json' \
                     --header 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' \
                     --header 'X-GitHub-Api-Version: 2022-11-28' \
