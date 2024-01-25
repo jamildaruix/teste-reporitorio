@@ -40,7 +40,6 @@ jobs:
         --header 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' \
         --header 'X-GitHub-Api-Version: 2022-11-28')
 
-        echo "Response: $response"
         tamanho=$(echo "$response" | jq '. | length')
 
         echo "Total de PRs abertos: $tamanho"
