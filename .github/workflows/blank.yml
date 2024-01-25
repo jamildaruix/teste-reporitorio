@@ -33,6 +33,8 @@ jobs:
         sudo apt-get update
         sudo apt-get install jq
 
+        echo jq -Version
+
         echo "Listando PRs abertos"
 
         response=$(curl -s 'https://api.github.com/repos/jamildaruix/teste-reporitorio/pulls' \
