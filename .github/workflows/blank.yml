@@ -6,9 +6,9 @@ name: CI
 on:
   # Triggers the workflow on push or pull request events but only for the "main" branch
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -22,15 +22,72 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v3
+    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+    - uses: actions/checkout@v3
 
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: echo Hello, world!
+    # Runs a set of commands using the runners shell
+    - name: Run a multi-line script
+      run: |
+        echo "Initializing..."
 
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
-        run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+        apt-get install -y jq
+
+        echo "Listando PRs abertos"
+
+        response=$(curl -s 'https://api.github.com/repos/jamildaruix/teste-reporitorio/pulls' \
+        --header 'Accept: application/vnd.github+json' \
+        --header 'Authorization: Bearer ${GIT_TOKEN}' \
+        --header 'X-GitHub-Api-Version: 2022-11-28')
+
+        tamanho=$(echo "$response" | jq '. | length')
+
+        echo "Total de PRs abertos: $tamanho"
+
+        if [[ $tamanho -le 0 ]]; then
+            echo "Não há PRs abertos"
+            exit 0
+        fi
+
+        # Obtendo a data atual
+        data_atual=$(date +%F)
+        data_limite=$(date -v-30d +%F)
+        echo "Data limite: $data_limite"
+
+        for ((i=0; i<$tamanho; i++)); do
+            # Usando o jq para obter o elemento atual
+            elemento=$(echo "$response" | jq ".[$i]")
+
+            number=$(echo "$elemento" | jq -r '.number')
+            echo "Número do PR: $number"
+
+            datecreated=$(echo "$elemento" | jq -r '.created_at')
+            echo "Data de criação do PR: $datecreated"
+
+            self=$(echo "$elemento" | jq -r '._links.self.href')
+            echo "Listando PRs abertos: $self"
+
+            # Fazendo a requisição CURL e obtendo o status code
+            status_code=$(curl --request POST https://api.github.com/repos/jamildaruix/teste-reporitorio/pulls/${number}/reviews \
+                --header 'Accept: application/vnd.github+json' \
+                --header 'Authorization: Bearer ${GIT_TOKEN}' \
+                --header 'X-GitHub-Api-Version: 2022-11-28' \
+                --header 'Content-Type: application/json' \
+                --data "{\"body\": \"close-pull-request: Closed by automation called date $data_atual\", \"event\": \"COMMENT\" }" \
+                -w "%{http_code}" \
+                -o /dev/null)
+
+            echo "[REVIEW NUMBER ${number}] Status code $status_code"
+
+            status_code=$(curl --request PATCH $self \
+                --header 'Accept: application/vnd.github+json' \
+                --header 'Authorization: Bearer ${GIT_TOKEN}' \
+                --header 'X-GitHub-Api-Version: 2022-11-28' \
+                --header 'Content-Type: application/json' \
+                --data '{"state":"closed"}' \
+                -w "%{http_code}" \
+                -o /dev/null)
+
+            echo "[CLOSE PR NUMBER ${number}] Status code $status_code"
+        done
+
+        echo "Finishing..."
