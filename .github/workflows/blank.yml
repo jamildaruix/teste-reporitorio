@@ -28,79 +28,98 @@ jobs:
     # Runs a set of commands using the runners shell
     - name: Run a multi-line script
       run: |
-        echo "Initializing..."
+        echo "INICIALIZANDO AUTOMAÇÃO"
+
         sudo apt-get update
         sudo apt-get install jq
 
-        echo "Listando PRs abertos"
+        echo "Listando pull request abertos"
 
-        response=$(curl -s 'https://api.github.com/repos/'${GITHUB_REPOSITORY_OWNER}'/teste-reporitorio/pulls' \
+        api_pull='https://api.github.com/repos/'${GITHUB_REPOSITORY_OWNER}'/teste-reporitorio/pulls'
+
+        response=$(curl -s --write-out "%{http_code}" "$api_pull" \
         --header 'Accept: application/vnd.github+json' \
-        --header 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' \
+        --header "Authorization: Bearer ${secrets.GITHUB_TOKEN}" \
         --header 'X-GitHub-Api-Version: 2022-11-28')
 
-        tamanho=$(echo "$response" | jq '. | length')
-        echo "Total de PRs abertos: $tamanho"
+        http_code="${response: -3}"
+        payload_pull="${response:0:${#response}-3}"
 
-        if [[ $tamanho -le 0 ]]; then
-            echo "Não há PRs abertos"
-            exit 0
+        if [[ $http_code -ne 200 ]]; then
+            echo "Erro com o status code " $http_code
+            exit -1
         fi
 
-        #Obtendo a data atual
-        data_atual=$(date)
-        echo "Data atual: $data_atual"
+        tamanho=$(echo "$payload_pull" | jq '. | length')
 
-        #Obtendo a data atual - 30 dias
+        if [[ $tamanho -le 0 ]]; then
+            echo "[PULL REQUEST] Não possí nenhum pull request aberto"
+            exit -1
+        fi
+
+        echo "Total de pull request abertos: $tamanho"
+
+
+        # Obtendo a data atual
+        # Obtendo a data atual - 30 dias
+
+        # MAC
+        #data_atual=$(date +%F)
+        #data_limite=$(date -v-30d +%F)
+        #echo "Data Atual $data_atual - Data limite: $data_limite"
+
+        #LINUX
+        data_atual=$(date)
         data_limite=$(date --date='-30 day')
-        echo "Data limite: $data_limite"
+        echo "Data Atual $data_atual - Data limite: $data_limite"
 
         for ((i=0; i<$tamanho; i++)); do
-            # Usando o jq para obter o elemento atual
-            elemento=$(echo "$response" | jq ".[$i]")
 
-            number=$(echo "$elemento" | jq -r '.number')
+            number=$(echo "$payload_pull" | jq -r ".[$i].number")
             echo "Número do PR: $number"
 
-            datecreated=$(echo "$elemento" | jq -r '.created_at')
+            datecreated=$(echo "$payload_pull" | jq -r ".[$i].created_at")
             echo "Data de criação do PR: $datecreated"
 
             datecreated_sem_horas=$(date -d "${data_inicial}" +%Y-%m-%d)
 
             if [[ "${datecreated_sem_horas}" < "${data_limite}" ]]; then
 
-                self=$(echo "$elemento" | jq -r '._links.self.href')
-                
-                api_review="https://api.github.com/repos/${GITHUB_REPOSITORY_OWNER}/teste-reporitorio/pulls/${number}/reviews"
-                                
                 # Fazendo a requisição CURL e obtendo o status code
-                status_code=$(curl --request POST "$api_review" \
+                api_review="https://api.github.com/repos/${GITHUB_REPOSITORY_OWNER}/teste-reporitorio/pulls/${number}/reviews"
+
+                response=""
+                response=$(curl -s --write-out "%{http_code}" POST "$api_review" \
                     --header 'Accept: application/vnd.github+json' \
-                    --header 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' \
+                    --header "Authorization: Bearer ${secrets.GITHUB_TOKEN}" \
                     --header 'X-GitHub-Api-Version: 2022-11-28' \
                     --header 'Content-Type: application/json' \
-                    --data "{\"body\": \"close-pull-request: Closed by automation called date $data_atual\", \"event\": \"COMMENT\" }" \
+                    --data "{\"body\": \"close-pull-request: Closed by automation called date $data_atual\", \"event\": \"COMMENT\" }")
+
+
+                http_code="${response: -3}"
+
+                if [[ $http_code -ne 200 ]]; then
+                    echo "[REVIEW NUMBER ${number}] com erro. Status code $http_code"
+                    exit -1
+                fi
+
+                echo "[REVIEW NUMBER ${number}] Status code $http_code"
+
+                api_self="https://api.github.com/repos/${GITHUB_REPOSITORY_OWNER}/teste-reporitorio/pulls/"${number}
+
+                status_code=""
+                status_code=$(curl -s --request PATCH $api_self \
+                    --header 'Accept: application/vnd.github+json' \
+                    --header "Authorization: Bearer ${secrets.GITHUB_TOKEN}" \
+                    --header 'X-GitHub-Api-Version: 2022-11-28' \
+                    --header 'Content-Type: application/json' \
+                    --data '{"state":"closed"}' \
                     -w "%{http_code}" \
                     -o /dev/null)
 
-                # Imprimindo o status code
-                echo "[REVIEW NUMBER ${number}] Status code $status_code"
-
-                if [[ $status_code -ne 200 ]]; then
-                    echo "[REVIEW NUMBER ${number}] Status code é diferente de 200. Saindo do loop."
-                else
-                    status_code=$(curl --request PATCH $self \
-                        --header 'Accept: application/vnd.github+json' \
-                        --header 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' \
-                        --header 'X-GitHub-Api-Version: 2022-11-28' \
-                        --header 'Content-Type: application/json' \
-                        --data '{"state":"closed" }' \
-                        -w "%{http_code}" \
-                        -o /dev/null)
-
-                    echo "[CLOSE PR NUMBER ${number}] Status code $status_code"
-                fi
+                echo "[CLOSE PR NUMBER ${number}] com o status code $status_code"
             fi
         done
 
-        echo "Finishing..."
+        echo "FIM AUTOMAÇÃO"
