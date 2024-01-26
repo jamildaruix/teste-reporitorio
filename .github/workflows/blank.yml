@@ -7,8 +7,6 @@ on:
   # Triggers the workflow on push or pull request events but only for the "main" branch
   push:
     branches: ["main"]
-  pull_request:
-    branches: ["main"]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -72,6 +70,8 @@ jobs:
         #LINUX
         data_atual=$(date)
         data_limite=$(date --date='-30 day')
+        data_limite=$(date -d "${data_limite}" +%Y%m%d)
+
         echo "Data Atual $data_atual - Data limite: $data_limite"
 
         for ((i=0; i<$tamanho; i++)); do
@@ -80,12 +80,11 @@ jobs:
             echo "Número do PR: $number"
 
             datecreated=$(echo "$payload_pull" | jq -r ".[$i].created_at")
+            datecreated=$(date -d "${datecreated}" +%Y%m%d)
             echo "Data de criação do PR: $datecreated"
 
-            datecreated_sem_horas=$(date -d "${data_inicial}" +%Y-%m-%d)
-
-            if [[ "${datecreated_sem_horas}" < "${data_limite}" ]]; then
-
+            if [ "${datecreated}" -lt "${data_limite}" ]; then
+            
                 # Fazendo a requisição CURL e obtendo o status code
                 api_review="https://api.github.com/repos/${{ github.repository }}/pulls/${number}/reviews"
 
@@ -124,3 +123,23 @@ jobs:
         done
 
         echo "FIM AUTOMAÇÃO"
+
+
+
+
+bash
+#!/bin/bash
+
+data1="02/02/2023"
+data2="03/03/2023"
+
+# Converter as datas para o formato numérico (YYYYMMDD)
+data1_num=$(date -d "${data1}" +%Y%m%d)
+data2_num=$(date -d "${data2}" +%Y%m%d)
+
+# Comparar as datas
+if [ "${data1_num}" -lt "${data2_num}" ]; then
+  echo "A primeira data (${data1}) é menor que a segunda data (${data2})."
+else
+  echo "A primeira data (${data1}) não é menor que a segunda data (${data2})."
+fi
