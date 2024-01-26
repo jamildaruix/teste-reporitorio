@@ -70,8 +70,10 @@ jobs:
             datecreated=$(date -d "${datecreated}" +%Y%m%d)
             echo "Data de criação do PR: $datecreated"
 
-            if [ "${datecreated}" < "${data_limite}" ]; then
+            is_date_before_limit=$( [ "${datecreated}" \< "${data_limite}" ] && echo true || echo false )
+            echo "Data de criação do PR é menor que a data limite? $is_date_before_limit"
 
+            !If [ "${is_date_before_limit}" = true ]; then
                 # Fazendo a requisição CURL e obtendo o status code
                 api_review="https://api.github.com/repos/${{ github.repository }}/pulls/${number}/reviews"
 
