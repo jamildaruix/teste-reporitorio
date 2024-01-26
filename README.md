@@ -3,7 +3,7 @@ Aula um exemplo
 
 
 Primeiro commit pelo comando do terminal
-
+teste 3
 
 Adiciou mais uma linha e fez o 
 - git add . -- Adicona os arquivos para subir no git
