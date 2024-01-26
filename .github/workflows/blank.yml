@@ -84,7 +84,7 @@ jobs:
             echo "Data de criação do PR: $datecreated"
 
             if [ "${datecreated}" -lt "${data_limite}" ]; then
-            
+
                 # Fazendo a requisição CURL e obtendo o status code
                 api_review="https://api.github.com/repos/${{ github.repository }}/pulls/${number}/reviews"
 
@@ -123,23 +123,3 @@ jobs:
         done
 
         echo "FIM AUTOMAÇÃO"
-
-
-
-
-bash
-#!/bin/bash
-
-data1="02/02/2023"
-data2="03/03/2023"
-
-# Converter as datas para o formato numérico (YYYYMMDD)
-data1_num=$(date -d "${data1}" +%Y%m%d)
-data2_num=$(date -d "${data2}" +%Y%m%d)
-
-# Comparar as datas
-if [ "${data1_num}" -lt "${data2_num}" ]; then
-  echo "A primeira data (${data1}) é menor que a segunda data (${data2})."
-else
-  echo "A primeira data (${data1}) não é menor que a segunda data (${data2})."
-fi
