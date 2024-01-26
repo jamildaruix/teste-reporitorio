@@ -69,7 +69,7 @@ jobs:
 
         #LINUX
         data_atual=$(date)
-        data_limite=$(date --date='-30 day')
+        data_limite=$(date --date='+30 day')
         data_limite=$(date -d "${data_limite}" +%Y%m%d)
 
         echo "Data Atual $data_atual - Data limite: $data_limite"
