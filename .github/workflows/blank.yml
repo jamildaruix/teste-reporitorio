@@ -69,7 +69,7 @@ jobs:
 
         #LINUX
         data_atual=$(date)
-        data_limite=$(date --date='+30 day')
+        data_limite=$(date --date='-30 day')
         data_limite=$(date -d "${data_limite}" +%Y%m%d)
 
         echo "Data Atual $data_atual - Data limite: $data_limite"
@@ -83,7 +83,7 @@ jobs:
             datecreated=$(date -d "${datecreated}" +%Y%m%d)
             echo "Data de criação do PR: $datecreated"
 
-            if [ "${datecreated}" -lt "${data_limite}" ]; then
+            if [ "${datecreated}" < "${data_limite}" ]; then
 
                 # Fazendo a requisição CURL e obtendo o status code
                 api_review="https://api.github.com/repos/${{ github.repository }}/pulls/${number}/reviews"
@@ -95,7 +95,6 @@ jobs:
                     --header 'X-GitHub-Api-Version: 2022-11-28' \
                     --header 'Content-Type: application/json' \
                     --data "{\"body\": \"close-pull-request: Closed by automation called date $data_atual\", \"event\": \"COMMENT\" }")
-
 
                 http_code="${response: -3}"
 
