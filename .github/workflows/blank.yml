@@ -56,11 +56,10 @@ jobs:
 
         if [[ $tamanho -le 0 ]]; then
             echo "[PULL REQUEST] Não possí nenhum pull request aberto"
-            exit -1
+            exit 0
         fi
 
         echo "Total de pull request abertos: $tamanho"
-
 
         # Obtendo a data atual
         # Obtendo a data atual - 30 dias
