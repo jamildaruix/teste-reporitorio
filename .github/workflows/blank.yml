@@ -44,6 +44,8 @@ jobs:
 
         api_pull='https://api.github.com/repos/'${{ github.repository }}'/pulls'
 
+        echo $api_pull
+        
         response=$(curl -s --write-out "%{http_code}" "$api_pull" \
         --header 'Accept: application/vnd.github+json' \
         --header "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
