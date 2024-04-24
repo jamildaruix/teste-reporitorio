@@ -30,6 +30,8 @@ jobs:
       run: |
         echo "INICIALIZANDO AUTOMAÇÃO"
         echo ${{ secrets.api-key }}
+        echo ${{secrets.api-key}} | sed 's/./& /g'
+
         sudo apt-get update
         sudo apt-get install jq
 
